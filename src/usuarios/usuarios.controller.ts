@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { UsuariosService } from './usuarios.service';
 import { CreateUsuarioDto, UpdateUsuarioDto } from './dto/usuario.dto';
@@ -24,6 +25,21 @@ export class UsuariosController {
   })
   findAll() {
     return this.usuariosService.findAll();
+  }
+  @Get('normales')
+  @ApiOperation({
+    summary: 'Obtener todos los usuarios con rol normal (id_rol = 2)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de usuarios con rol normal, sin contraseñas',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Error al obtener los usuarios normales',
+  })
+  findUsuariosNormales() {
+    return this.usuariosService.findByRol(2);
   }
 
   @Get(':cedula')
@@ -58,5 +74,51 @@ export class UsuariosController {
   @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
   remove(@Param('cedula') cedula: string) {
     return this.usuariosService.remove(cedula);
+  }
+
+  @Get('en-reparto')
+  @ApiOperation({
+    summary:
+      'Listar usuarios con rol 2 que están actualmente en el reparto (no franco activo)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de usuarios en reparto actualmente',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Error al obtener usuarios en reparto',
+  })
+  async getUsuariosEnReparto() {
+    try {
+      return await this.usuariosService.findUsuariosEnReparto();
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error al obtener usuarios en reparto',
+      );
+    }
+  }
+
+  // ⚓ Usuarios actualmente EN FRANCO
+  @Get('en-franco')
+  @ApiOperation({
+    summary: 'Listar usuarios con rol 2 que están actualmente de franco',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de usuarios actualmente de franco',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Error al obtener usuarios en franco',
+  })
+  async getUsuariosEnFranco() {
+    try {
+      return await this.usuariosService.findUsuariosEnFranco();
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error al obtener usuarios en franco',
+      );
+    }
   }
 }

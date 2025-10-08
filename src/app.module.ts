@@ -8,6 +8,9 @@ import { RolesModule } from './roles/roles.module';
 import { EspecialidadesModule } from './especialidades/especialidades.module';
 import { GradosModule } from './grados/grados.module';
 import { SeccionesModule } from './secciones/secciones.module';
+import { AuthModule } from './auth/auth.module';
+import { FrancoModule } from './franco/franco.module';
+import { RazonFrancoModule } from './razon-franco/razon-franco.module';
 
 @Module({
   imports: [
@@ -31,6 +34,9 @@ import { SeccionesModule } from './secciones/secciones.module';
     EspecialidadesModule,
     GradosModule,
     SeccionesModule,
+    AuthModule,
+    FrancoModule,
+    RazonFrancoModule,
   ],
   controllers: [AppController],
   providers: [AppService],

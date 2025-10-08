@@ -1,9 +1,17 @@
-import { Entity, Column, PrimaryColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryColumn,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+} from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Role } from 'src/roles/entity/roles.entity';
 import { Grado } from 'src/grados/entity/grados.entity';
 import { Especialidad } from 'src/especialidades/entity/especialidades.entity';
 import { Seccion } from 'src/secciones/entity/secciones.entity';
+import { Franco } from 'src/franco/entity/franco.entity';
 
 @Entity('usuarios')
 export class Usuario {
@@ -75,4 +83,11 @@ export class Usuario {
   @ManyToOne(() => Seccion, (sec) => sec.usuarios)
   @JoinColumn({ name: 'id_seccion' })
   seccion: Seccion;
+
+  @ApiProperty({
+    type: () => [Franco],
+    description: 'Lista de francos asociados al usuario',
+  })
+  @OneToMany(() => Franco, (franco) => franco.usuario)
+  francos: Franco[];
 }

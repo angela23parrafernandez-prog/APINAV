@@ -9,12 +9,15 @@ import { Repository } from 'typeorm';
 import { Usuario } from './entity/usuarios.entity';
 import { CreateUsuarioDto, UpdateUsuarioDto } from './dto/usuario.dto';
 import * as bcrypt from 'bcrypt';
+import { Franco } from 'src/franco/entity/franco.entity';
 
 @Injectable()
 export class UsuariosService {
   constructor(
     @InjectRepository(Usuario)
     private readonly usuariosRepository: Repository<Usuario>,
+    @InjectRepository(Franco)
+    private readonly francosRepository: Repository<Franco>,
   ) {}
 
   /** Obtener todos los usuarios (sin contraseñas) */
@@ -27,6 +30,31 @@ export class UsuariosService {
       return usuarios.map(({ contrasena, ...rest }) => rest);
     } catch (error) {
       throw new InternalServerErrorException('Error al obtener los usuarios');
+    }
+  }
+  async findByRol(idRol: number) {
+    try {
+      const usuarios = await this.usuariosRepository.find({
+        where: { rol: { id_rol: idRol } },
+        relations: ['rol', 'grado', 'especialidad', 'seccion'],
+      });
+
+      // Si no hay usuarios con ese rol
+      if (!usuarios.length) {
+        throw new NotFoundException(
+          `No se encontraron usuarios con rol ${idRol}`,
+        );
+      }
+
+      // Quita la contraseña de la respuesta
+      return usuarios.map(({ contrasena, ...rest }) => rest);
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+
+      console.error('Error al obtener usuarios por rol:', error);
+      throw new InternalServerErrorException(
+        'Error al obtener los usuarios por rol',
+      );
     }
   }
 
@@ -141,6 +169,88 @@ export class UsuariosService {
       };
     } catch (error) {
       throw new InternalServerErrorException('Error al eliminar el usuario');
+    }
+  }
+  async findByCedula(cedula: string) {
+    return this.usuariosRepository.findOne({
+      where: { cedula },
+      relations: ['rol'],
+    });
+  }
+
+  async findUsuariosEnFranco() {
+    try {
+      const hoy = new Date();
+
+      const francosActivos = await this.francosRepository.find({
+        where: {
+          estado: 'ACTIVO',
+        },
+        relations: ['usuario', 'razon'],
+      });
+
+      // Filtramos solo los usuarios normales (rol 2)
+      const usuariosFranco = francosActivos
+        .filter(
+          (f) =>
+            f.usuario.rol?.id_rol === 2 &&
+            hoy >= new Date(f.fecha_inicio) &&
+            hoy <= new Date(f.fecha_fin),
+        )
+        .map((f) => ({
+          cedula: f.usuario.cedula,
+          nombre: f.usuario.nombre,
+          apellido: f.usuario.apellido,
+          razon: f.razon.descripcion,
+          fecha_inicio: f.fecha_inicio,
+          fecha_fin: f.fecha_fin,
+          observacion: f.observacion,
+        }));
+
+      return usuariosFranco;
+    } catch (error) {
+      console.error('Error al obtener usuarios en franco:', error);
+      throw new InternalServerErrorException(
+        'Error al obtener usuarios en franco',
+      );
+    }
+  }
+
+  // 🧭 Usuarios actualmente en reparto (rol 2 + no franco activo)
+  async findUsuariosEnReparto() {
+    try {
+      const hoy = new Date();
+
+      // Usuarios normales
+      const usuariosNormales = await this.usuariosRepository.find({
+        where: { rol: { id_rol: 2 } },
+        relations: ['rol', 'grado', 'especialidad', 'seccion'],
+      });
+
+      // Francos activos
+      const francosActivos = await this.francosRepository.find({
+        where: { estado: 'ACTIVO' },
+        relations: ['usuario'],
+      });
+
+      const cedulasFranco = francosActivos
+        .filter(
+          (f) =>
+            hoy >= new Date(f.fecha_inicio) && hoy <= new Date(f.fecha_fin),
+        )
+        .map((f) => f.usuario.cedula);
+
+      // Filtramos los que NO están franco
+      const usuariosEnReparto = usuariosNormales.filter(
+        (u) => !cedulasFranco.includes(u.cedula),
+      );
+
+      return usuariosEnReparto.map(({ contrasena, ...rest }) => rest);
+    } catch (error) {
+      console.error('Error al obtener usuarios en reparto:', error);
+      throw new InternalServerErrorException(
+        'Error al obtener usuarios en reparto',
+      );
     }
   }
 }

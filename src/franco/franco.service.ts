@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Not, Repository } from 'typeorm';
 import { Usuario } from 'src/usuarios/entity/usuarios.entity';
 import { Franco } from './entity/franco.entity';
 import { RazonFranco } from 'src/razon-franco/entity/razon-franco.entity';
@@ -37,6 +37,22 @@ export class FrancoService {
     });
   }
 
+  /** 🆕 Obtener francos activos o pendientes */
+  async findActivos() {
+    const francos = await this.francosRepository.find({
+      where: { estado: Not(In(['FINALIZADO', 'CANCELADO'])) },
+      relations: ['usuario', 'razon'],
+    });
+
+    // 🔒 Removemos contraseña de usuario
+    return francos.map((f) => {
+      if (f.usuario) {
+        const { contrasena, ...safeUsuario } = f.usuario;
+        return { ...f, usuario: safeUsuario };
+      }
+      return f;
+    });
+  }
   /** Obtener un franco por ID */
   async findOne(id: number) {
     const franco = await this.francosRepository.findOne({

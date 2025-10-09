@@ -11,6 +11,7 @@ import { SeccionesModule } from './secciones/secciones.module';
 import { AuthModule } from './auth/auth.module';
 import { FrancoModule } from './franco/franco.module';
 import { RazonFrancoModule } from './razon-franco/razon-franco.module';
+import { GuardiaModule } from './guardia/guardia.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { RazonFrancoModule } from './razon-franco/razon-franco.module';
     AuthModule,
     FrancoModule,
     RazonFrancoModule,
+    GuardiaModule,
   ],
   controllers: [AppController],
   providers: [AppService],

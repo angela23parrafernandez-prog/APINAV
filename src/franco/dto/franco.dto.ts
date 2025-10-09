@@ -46,14 +46,14 @@ export class CreateFrancoDto {
   observacion?: string;
 
   @ApiProperty({
-    example: 'ACTIVO',
-    enum: ['ACTIVO', 'FINALIZADO', 'CANCELADO'],
-    description: 'Estado actual del franco',
+    example: 'PENDIENTE',
+    enum: ['PENDIENTE', 'ACTIVO', 'FINALIZADO', 'CANCELADO'],
+    description: 'Estado actual del registro de sanidad',
     required: false,
   })
   @IsOptional()
-  @IsEnum(['ACTIVO', 'FINALIZADO', 'CANCELADO'])
-  estado?: string;
+  @IsEnum(['PENDIENTE', 'ACTIVO', 'FINALIZADO', 'CANCELADO'])
+  estado?: 'PENDIENTE' | 'ACTIVO' | 'FINALIZADO' | 'CANCELADO';
 }
 
 export class UpdateFrancoDto extends PartialType(CreateFrancoDto) {}

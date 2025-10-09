@@ -91,6 +91,16 @@ export class CreateUsuarioDto {
   })
   @IsNumber({}, { message: 'El id_seccion debe ser un número' })
   id_seccion: number;
+  // 🔹 Nueva propiedad para compañía
+  @ApiProperty({
+    example: 1,
+    description:
+      'ID de la compañía (1: Henao, 2: Acevedo, 3: Hayes, 4: Valverde, 5: BGD)',
+    required: false,
+  })
+  @IsOptional()
+  @IsNumber({}, { message: 'El id_compania debe ser un número' })
+  id_compania?: number;
 }
 
 export class UpdateUsuarioDto extends PartialType(CreateUsuarioDto) {}

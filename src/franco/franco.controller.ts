@@ -22,6 +22,19 @@ export class FrancoController {
   findAll() {
     return this.francosService.findAll();
   }
+  // 🆕 NUEVA RUTA
+  @Get('activos')
+  @ApiOperation({
+    summary:
+      'Listar francos activos o pendientes (excluye finalizados y cancelados)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de francos en estado ACTIVO o PENDIENTE',
+  })
+  findActivos() {
+    return this.francosService.findActivos();
+  }
 
   @Get(':id')
   @ApiOperation({ summary: 'Obtener un franco por su ID' })

@@ -64,6 +64,14 @@ export class Usuario {
   @Column({ type: 'int', nullable: true })
   id_seccion?: number;
 
+  @ApiProperty({
+    example: 1,
+    description:
+      'ID de la compañía interna (1: Henao, 2: Acevedo, 3: Hayes, 4: Valverde, 5: BGD)',
+  })
+  @Column({ type: 'int', nullable: true })
+  id_compania?: number;
+
   @ApiProperty({ description: 'Rol asignado al usuario' })
   @ManyToOne(() => Role, (role) => role.usuarios)
   @JoinColumn({ name: 'id_rol' })

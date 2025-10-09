@@ -48,16 +48,16 @@ export class Franco {
   observacion?: string;
 
   @ApiProperty({
-    example: 'ACTIVO',
-    enum: ['ACTIVO', 'FINALIZADO', 'CANCELADO'],
-    description: 'Estado actual del franco',
+    example: 'PENDIENTE',
+    enum: ['PENDIENTE', 'ACTIVO', 'FINALIZADO', 'CANCELADO'],
+    description: 'Estado actual del registro de sanidad',
   })
   @Column({
     type: 'enum',
-    enum: ['ACTIVO', 'FINALIZADO', 'CANCELADO'],
-    default: 'ACTIVO',
+    enum: ['PENDIENTE', 'ACTIVO', 'FINALIZADO', 'CANCELADO'],
+    default: 'PENDIENTE',
   })
-  estado: 'ACTIVO' | 'FINALIZADO' | 'CANCELADO';
+  estado: 'PENDIENTE' | 'ACTIVO' | 'FINALIZADO' | 'CANCELADO';
 
   @ApiProperty({ description: 'Fecha de creación del registro' })
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

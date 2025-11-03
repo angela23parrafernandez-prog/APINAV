@@ -12,9 +12,11 @@ import { AuthModule } from './auth/auth.module';
 import { FrancoModule } from './franco/franco.module';
 import { RazonFrancoModule } from './razon-franco/razon-franco.module';
 import { GuardiaModule } from './guardia/guardia.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -41,6 +43,6 @@ import { GuardiaModule } from './guardia/guardia.module';
     GuardiaModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, ],
 })
 export class AppModule {}

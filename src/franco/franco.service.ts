@@ -1,17 +1,15 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Not, Repository } from 'typeorm';
+import { In, LessThanOrEqual, Not, Repository } from 'typeorm';
 import { Usuario } from 'src/usuarios/entity/usuarios.entity';
 import { Franco } from './entity/franco.entity';
 import { RazonFranco } from 'src/razon-franco/entity/razon-franco.entity';
 import { CreateFrancoDto, UpdateFrancoDto } from './dto/franco.dto';
-
+import { Injectable, InternalServerErrorException, NotFoundException, Logger } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 @Injectable()
 export class FrancoService {
+   private readonly logger = new Logger(FrancoService.name);
   constructor(
     @InjectRepository(Franco)
     private readonly francosRepository: Repository<Franco>,
@@ -21,13 +19,54 @@ export class FrancoService {
     private readonly razonesRepository: Repository<RazonFranco>,
   ) {}
 
+
+  // ===================================================
+  //  TAREA AUTOMÁTICA: revisar francos vencidos cada día
+  // ===================================================
+
+@Cron(CronExpression.EVERY_DAY_AT_6PM)
+async verificarFrancosVencidos() {
+  const horaActual = new Date().getHours();
+  const horaPermitida = 17; // 17 = 5:00 p.m.
+
+  // Solo ejecutar la actualización si ya pasó la hora configurada
+  if (horaActual < horaPermitida) {
+    this.logger.log(` Aún no son las ${horaPermitida}:00, no se actualizan francos.`);
+    return;
+  }
+
+  this.logger.log(' Ejecutando verificación automática de francos vencidos...');
+  const hoy = new Date().toISOString().split('T')[0];
+
+  // Buscar francos activos cuya fecha_fin ya haya pasado
+  const vencidos = await this.francosRepository.find({
+    where: { estado: 'ACTIVO', fecha_fin: LessThanOrEqual(hoy) },
+  });
+
+  if (vencidos.length === 0) {
+    this.logger.log(' No se encontraron francos vencidos.');
+    return;
+  }
+
+  this.logger.warn(` Se encontraron ${vencidos.length} francos vencidos.`);
+  for (const franco of vencidos) {
+    franco.estado = 'FINALIZADO';
+    await this.francosRepository.save(franco);
+    this.logger.log(` Franco ID ${franco.id_franco} cambiado a FINALIZADO`);
+  }
+}
+
+  // ===================================================
+  // RESTO DE TUS MÉTODOS NORMALES
+  // ===================================================
+
   /** Obtener todos los francos */
   async findAll() {
     const francos = await this.francosRepository.find({
       relations: ['usuario', 'razon'],
     });
 
-    // 🔒 Eliminamos la contraseña antes de devolver los datos
+    //  Eliminamos la contraseña antes de devolver los datos
     return francos.map((f) => {
       if (f.usuario) {
         const { contrasena, ...safeUsuario } = f.usuario;
@@ -118,3 +157,6 @@ export class FrancoService {
     return await this.francosRepository.remove(franco);
   }
 }
+
+
+

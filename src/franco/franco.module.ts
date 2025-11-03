@@ -10,5 +10,6 @@ import { Usuario } from 'src/usuarios/entity/usuarios.entity';
   imports: [TypeOrmModule.forFeature([Franco, Usuario, RazonFranco])],
   controllers: [FrancoController],
   providers: [FrancoService],
+  exports: [FrancoService],
 })
 export class FrancoModule {}

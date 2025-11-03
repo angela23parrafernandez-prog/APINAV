@@ -37,14 +37,14 @@ export class FrancoService {
     });
   }
 
-  /** 🆕 Obtener francos activos o pendientes */
+  /**  Obtener francos activos o pendientes */
   async findActivos() {
     const francos = await this.francosRepository.find({
-      where: { estado: Not(In(['FINALIZADO', 'CANCELADO'])) },
+     
       relations: ['usuario', 'razon'],
     });
 
-    // 🔒 Removemos contraseña de usuario
+    //  Removemos contraseña de usuario
     return francos.map((f) => {
       if (f.usuario) {
         const { contrasena, ...safeUsuario } = f.usuario;

@@ -17,12 +17,21 @@ import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 export class UsuariosController {
   constructor(private readonly usuariosService: UsuariosService) {}
 
+   /** Nuevo endpoint */
+  @Get('con-credenciales')
+  async findUsuariosConCredenciales() {
+    return this.usuariosService.findUsuariosConCredenciales();
+  }
+
+
   @Get()
   @ApiOperation({ summary: 'Obtener todos los usuarios' })
   @ApiResponse({
     status: 200,
     description: 'Lista de usuarios sin contraseñas',
   })
+
+
   findAll() {
     return this.usuariosService.findAll();
   }
@@ -99,7 +108,7 @@ export class UsuariosController {
     }
   }
 
-  // ⚓ Usuarios actualmente EN FRANCO
+  //  Usuarios actualmente EN FRANCO
   @Get('en-franco')
   @ApiOperation({
     summary: 'Listar usuarios con rol 2 que están actualmente de franco',
@@ -121,4 +130,9 @@ export class UsuariosController {
       );
     }
   }
+
+
+
+
+
 }

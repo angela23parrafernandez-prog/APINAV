@@ -5,7 +5,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { Usuario } from './entity/usuarios.entity';
 import { CreateUsuarioDto, UpdateUsuarioDto } from './dto/usuario.dto';
 import * as bcrypt from 'bcrypt';
@@ -26,7 +26,7 @@ export class UsuariosService {
       const usuarios = await this.usuariosRepository.find({
         relations: ['rol', 'grado', 'especialidad', 'seccion'],
       });
-      // ❌ No retornamos contraseñas
+      //  No retornamos contraseñas
       return usuarios.map(({ contrasena, ...rest }) => rest);
     } catch (error) {
       throw new InternalServerErrorException('Error al obtener los usuarios');
@@ -69,7 +69,7 @@ export class UsuariosService {
         `No se encontró el usuario con cédula ${cedula}`,
       );
     }
-    // ❌ No retornamos contraseña
+    //  No retornamos contraseña
     const { contrasena, ...safeUsuario } = usuario;
     return safeUsuario;
   }
@@ -90,7 +90,7 @@ export class UsuariosService {
         );
       }
 
-      // 🔒 Encriptar contraseña
+      //  Encriptar contraseña
       const hashedPassword = await bcrypt.hash(data.contrasena, 10);
       const nuevo = this.usuariosRepository.create({
         ...data,
@@ -101,7 +101,7 @@ export class UsuariosService {
       const { contrasena, ...safeUsuario } = saved;
       return safeUsuario;
     } catch (error) {
-      // ✅ Captura los errores específicos de MySQL
+      //  Captura los errores específicos de MySQL
       if (error.code === 'ER_DUP_ENTRY') {
         // Ejemplo del mensaje: "Duplicate entry 'erick@marina.mil.ec' for key 'usuarios.correo'"
         const message: string = error.sqlMessage || '';
@@ -113,12 +113,12 @@ export class UsuariosService {
         throw new BadRequestException(`Ya existe un usuario con esa ${campo}`);
       }
 
-      // ✅ Captura errores de validación manual
+      //  Captura errores de validación manual
       if (error instanceof BadRequestException) {
         throw error;
       }
 
-      // ✅ Cualquier otro error inesperado
+      //  Cualquier otro error inesperado
       console.error('Error al crear usuario:', error);
       throw new InternalServerErrorException('Error al crear el usuario');
     }
@@ -136,7 +136,7 @@ export class UsuariosService {
     }
 
     try {
-      // 🔒 Encriptar contraseña si viene en la actualización
+      //  Encriptar contraseña si viene en la actualización
       if (data.contrasena) {
         data.contrasena = await bcrypt.hash(data.contrasena, 10);
       }
@@ -216,7 +216,7 @@ export class UsuariosService {
     }
   }
 
-  // 🧭 Usuarios actualmente en reparto (rol 2 + no franco activo)
+  //  Usuarios actualmente en reparto (rol 2 + no franco activo)
   async findUsuariosEnReparto() {
     try {
       const hoy = new Date();
@@ -253,4 +253,35 @@ export class UsuariosService {
       );
     }
   }
+
+   /**  Obtener solo usuarios con credenciales (correo y contraseña no vacíos) */
+/**  Obtener solo usuarios con credenciales (correo y contraseña no vacíos) */
+async findUsuariosConCredenciales() {
+  try {
+    const usuarios = await this.usuariosRepository.find({
+      select: ['cedula', 'nombre', 'apellido', 'telefono', 'correo', 'id_rol'], // ✅ solo estos campos
+      where: [
+        { correo: Not(''), contrasena: Not('') },
+      ],
+    });
+
+    const filtrados = usuarios.filter(
+      (u) =>
+        u.cedula &&
+        u.nombre &&
+        u.correo &&
+        u.telefono !== undefined &&
+        u.correo.trim() !== '',
+    );
+
+    return filtrados;
+  } catch (error) {
+    console.error('Error al obtener usuarios con credenciales:', error);
+    throw new InternalServerErrorException(
+      'Error al obtener usuarios con credenciales',
+    );
+  }
+}
+
+
 }
